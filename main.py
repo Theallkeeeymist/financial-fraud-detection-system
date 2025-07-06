@@ -3,6 +3,8 @@ from sklearn.preprocessing import StandardScaler #Using this for feature scaling
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
+import xgboost as xgb
+from xgboost import XGBClassifier
 from sklearn.metrics import roc_auc_score, f1_score, precision_recall_curve, average_precision_score, \
     classification_report
 from sklearn.model_selection import train_test_split
@@ -20,11 +22,11 @@ data=pd.read_csv("dataset/creditcard.csv")
 # Drop 'Time' column if not already
 data = data.drop(columns=['Time'])
 
-# print(data['Amount'].head()) #RAW DATA IS SUITABLE FOR TREE BASED MODEL SINCE THE DO NOT REQUIRE SCALING AT ALL.
+print(data['Amount'].head()) #RAW DATA IS SUITABLE FOR TREE BASED MODEL SINCE THE DO NOT REQUIRE SCALING AT ALL.
 
-scaler=StandardScaler()  #TO BE USED WHEN REGRESSION OR SVM OR KNN TYPE MODELS ARE USED.
-data['Amount']=scaler.fit_transform(data[['Amount']])
-print(data['Amount'].head())
+# scaler=StandardScaler()  #TO BE USED WHEN REGRESSION OR SVM OR KNN TYPE MODELS ARE USED.
+# data['Amount']=scaler.fit_transform(data[['Amount']])
+# print(data['Amount'].head())
 
 # scaler=MinMaxScaler()   TO BE USED WHEN FEATURES ARE DIFFERENTLY SCALED AND YOU WANT UNIFORMITY.
 # data['Amount']=scaler.fit_transform(data[['Amount']])
@@ -40,6 +42,7 @@ X_train,X_test,y_train,y_test=train_test_split(X, y, test_size=0.2, random_state
 #stratify produces similar ratio of data compared to original dataset i.e if overall there is 0.2% of fraud then why will haeve similar percentage of fraud
 smote=SMOTE(random_state=42)
 X_train_sm,y_train_sm=smote.fit_resample(X_train,y_train)
+# BELOW IS LOGISTIC REG PART
 # model_logistic=LogisticRegression(class_weight='balanced')
 # model_logistic.fit(X_train, y_train)
 
@@ -48,18 +51,37 @@ X_train_sm,y_train_sm=smote.fit_resample(X_train,y_train)
 # y_pred=model_logistic.predict(X_test)
 # y_prob=model_logistic.predict_proba(X_test)[:, 1]
 
-model_tree=RandomForestClassifier(
-    n_estimators=200, #Number of tree
-    # class_weight='balanced', #Handle fraud vs legit imbalance
-    random_state=42,
-    n_jobs=-1 #Use all CPU Cores
+# BELOW IS RANDOMFORESTCLASSIFIER PART
+# model_tree=RandomForestClassifier(
+#     n_estimators=200, #Number of tree
+#     class_weight='balanced', #Handle fraud vs legit imbalance
+#     random_state=42,
+#     n_jobs=-1 #Use all CPU Cores
+# )
+# # model_tree.fit(X_train, y_train)
+# y_pred=model_tree.predict(X_test)
+# y_prob=model_tree.predict_proba(X_test)[:,1]
+
+# BELOW WE HAVE XGBOOST
+xgb_model=XGBClassifier(
+    # Include devices GPU for faster
+    tree_method='gpu_hist', #Uses GPU for speed
+    predictor='gpu_predictor', #GPU for prediction too
+    n_estimators=1000, #Number of Trees
+    learning_rate=0.1, #step size
+    max_depth=4, #Depth of tree
+    # No scale pos when using SMOTE
+    # scale_pos_weight=(len(y_train[y_train==0]) / len(y_train[y_train==1])), # Handles fraud imbalance
+    use_label_encoder=False,
+    eval_metric='logloss',
+    random_state=42
 )
-model_tree.fit(X_train_sm, y_train_sm)
+xgb_model.fit(X_train_sm, y_train_sm)
 
-y_pred=model_tree.predict(X_test)
-y_prob=model_tree.predict_proba(X_test)[:,1]
+y_pred=xgb_model.predict(X_test)
+y_prob=xgb_model.predict_proba(X_test)[:,1]
 
-print("🔹 Logistic Regression (class_weight='balanced')")
+print("🔹 XGBoost W SMOTE ")
 print(classification_report(y_test, y_pred))
 print("ROC-AUC:", roc_auc_score(y_test, y_prob))
 print("AUPRC:", average_precision_score(y_test, y_prob))

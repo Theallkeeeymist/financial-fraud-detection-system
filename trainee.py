@@ -9,6 +9,7 @@ from sklearn.metrics import roc_auc_score, f1_score, precision_recall_curve, ave
     classification_report
 from sklearn.model_selection import train_test_split
 from imblearn.over_sampling import SMOTE
+import joblib
 
 data=pd.read_csv("dataset/creditcard.csv")
 
@@ -28,7 +29,7 @@ print(data['Amount'].head()) #RAW DATA IS SUITABLE FOR TREE BASED MODEL SINCE TH
 # data['Amount']=scaler.fit_transform(data[['Amount']])
 # print(data['Amount'].head())
 
-# scaler=MinMaxScaler()   TO BE USED WHEN FEATURES ARE DIFFERENTLY SCALED AND YOU WANT UNIFORMITY.
+# scaler=MinMaxScaler()   #TO BE USED WHEN FEATURES ARE DIFFERENTLY SCALED AND YOU WANT UNIFORMITY.
 # data['Amount']=scaler.fit_transform(data[['Amount']])
 # print(data['Amount'].head())
 X=data.drop('Class', axis=1) #All the features that the model will use to make predictions
@@ -97,4 +98,8 @@ sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
 plt.xlabel('Predicted')
 plt.ylabel('Actual')
 plt.title('Random Forest - Confusion Matrix')
+# plt.savefig("model/xgboost_confusion_matrix.png")
 plt.show()
+
+joblib.dump(xgb_model, "model/final_xgboost_smote_model.pkl")
+joblib.dump()

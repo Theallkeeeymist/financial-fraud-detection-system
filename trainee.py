@@ -13,6 +13,10 @@ import joblib
 
 data=pd.read_csv("dataset/creditcard.csv")
 
+from sklearn.metrics import confusion_matrix
+import seaborn as sns
+import matplotlib.pyplot as plt
+
 # print(data.head)
 # print('\n')
 # print(data.shape)
@@ -41,8 +45,30 @@ print(y.tail())
 
 X_train,X_test,y_train,y_test=train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
 #stratify produces similar ratio of data compared to original dataset i.e if overall there is 0.2% of fraud then why will haeve similar percentage of fraud
+
+colors = ["#0101DF", "#DF0101"]
+plt.figure(figsize=(6, 4))
+sns.countplot(x=y_train)
+plt.title("Original Class Distribution")
+plt.xlabel("Class (0 = Legit, 1 = Fraud)")
+plt.ylabel("Count")
+plt.show()
+
+print("Before SMOTE:", pd.Series(y_train).value_counts())
+
 smote=SMOTE(random_state=42)
 X_train_sm,y_train_sm=smote.fit_resample(X_train,y_train)
+
+print("After SMOTE:", pd.Series(y_train_sm).value_counts())
+# Convert to DataFrame for visualization
+resampled_df = pd.DataFrame(X_train_sm, columns=X_train.columns)
+resampled_df['Class'] = y_train_sm
+plt.figure(figsize=(6, 4))
+sns.countplot(x=y_train_sm)
+plt.title("After SMOTE Class Distribution")
+plt.xlabel("Class (0 = Legit, 1 = Fraud)")
+plt.ylabel("Count")
+plt.show()
 # BELOW IS LOGISTIC REG PART
 # model_logistic=LogisticRegression(class_weight='balanced')
 # model_logistic.fit(X_train, y_train)
@@ -89,9 +115,6 @@ print("AUPRC:", average_precision_score(y_test, y_prob))
 
 
 # Confusion Matrix
-from sklearn.metrics import confusion_matrix
-import seaborn as sns
-import matplotlib.pyplot as plt
 
 cm=confusion_matrix(y_test, y_pred)
 sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
@@ -102,4 +125,3 @@ plt.title('Random Forest - Confusion Matrix')
 plt.show()
 
 joblib.dump(xgb_model, "model/final_xgboost_smote_model.pkl")
-joblib.dump()

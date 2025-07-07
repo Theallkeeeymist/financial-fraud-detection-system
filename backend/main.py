@@ -16,7 +16,7 @@ app=FastAPI(
 print("FastAPI app starting...")
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-model_path = os.path.join(BASE_DIR, "..", "model", "calibrated_model.pkl")
+model_path = os.path.join(BASE_DIR, "..", "model", "final_xgboost_smote_model.pkl")
 model=joblib.load(model_path)
 
 print("Model loaded successfully:", model)

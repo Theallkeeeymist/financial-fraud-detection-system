@@ -1,4 +1,5 @@
 import pandas as pd
+from sklearn.calibration import CalibratedClassifierCV
 from sklearn.preprocessing import StandardScaler #Using this for feature scaling'
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.linear_model import LogisticRegression
@@ -103,6 +104,7 @@ xgb_model=XGBClassifier(
     eval_metric='logloss',
     random_state=42
 )
+xgb_model=CalibratedClassifierCV(xgb_model, method='sigmoid', cv=5)
 xgb_model.fit(X_train_sm, y_train_sm)
 
 y_pred=xgb_model.predict(X_test)
@@ -124,4 +126,4 @@ plt.title('Random Forest - Confusion Matrix')
 # plt.savefig("model/xgboost_confusion_matrix.png")
 plt.show()
 
-joblib.dump(xgb_model, "model/final_xgboost_smote_model.pkl")
+joblib.dump(xgb_model, "model/final_xgboost_smote_calibrated_model.pkl")

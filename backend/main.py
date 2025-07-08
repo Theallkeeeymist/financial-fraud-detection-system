@@ -16,7 +16,7 @@ app=FastAPI(
 print("FastAPI app starting...")
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-model_path = os.path.join(BASE_DIR, "..", "model", "final_xgboost_smote_model.pkl")
+model_path = os.path.join(BASE_DIR, "..", "model", "final_xgboost_smote_calibrated_model.pkl")
 model=joblib.load(model_path)
 
 print("Model loaded successfully:", model)
@@ -91,6 +91,7 @@ async def predict_csv(file: UploadFile = File(...)):
         try:
             df = pd.read_csv(file.file)
         except Exception as e:
+            print(f"error: {e}")
             return {"error": f"CSV parsing error: {str(e)}"}
 
         # Expected columns - must match EXACTLY what model was trained on

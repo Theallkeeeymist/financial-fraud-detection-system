@@ -3,6 +3,7 @@ import joblib
 import pandas as pd
 import numpy as np
 import os
+from sklearn.metrics import accuracy_score,classification_report
 from numpy.version import version
 from pydantic import BaseModel
 from typing import List
@@ -117,6 +118,7 @@ async def predict_csv(file: UploadFile = File(...)):
         # Get predictions
         probabilities = model.predict_proba(df[expected_cols])
         fraud_probs = probabilities[:, 1]  # Probability of class 1 (Fraud)
+        y_pred=(fraud_probs>0.0001).astype(int)
 
         # Add to your predict_csv endpoint before predictions
         print("Feature means:", df[expected_cols].mean())
@@ -132,7 +134,18 @@ async def predict_csv(file: UploadFile = File(...)):
                 # Show first 3 features for debugging
             })
 
-        return {"results": results}
+        if 'Class' in df.columns:
+            y_true = df['Class'].astype(int)
+            acc = accuracy_score(y_true, y_pred)
+            report = classification_report(y_true, y_pred, output_dict=True)
+
+            return {
+                "accuracy": acc,
+                "classification_report": report,
+                "results": results
+            }
+
+        return {"results": results, "note": "Accuracy not computed (no 'Class' column in CSV)"}
 
     except Exception as e:
         return {"error": f"Prediction failed: {str(e)}"}

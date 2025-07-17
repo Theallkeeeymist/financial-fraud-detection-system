@@ -28,10 +28,10 @@ import matplotlib.pyplot as plt
 # Drop 'Time' column if not already
 data = data.drop(columns=['Time'])
 
-print(data['Amount'].head()) #RAW DATA IS SUITABLE FOR TREE BASED MODEL SINCE THE DO NOT REQUIRE SCALING AT ALL.
+# print(data['Amount'].head()) #RAW DATA IS SUITABLE FOR TREE BASED MODEL SINCE THE DO NOT REQUIRE SCALING AT ALL.
 
-# scaler=StandardScaler()  #TO BE USED WHEN REGRESSION OR SVM OR KNN TYPE MODELS ARE USED.
-# data['Amount']=scaler.fit_transform(data[['Amount']])
+scaler=StandardScaler()  #TO BE USED WHEN REGRESSION OR SVM OR KNN TYPE MODELS ARE USED.
+# data=scaler.fit_transform(data)
 # print(data['Amount'].head())
 
 # scaler=MinMaxScaler()   #TO BE USED WHEN FEATURES ARE DIFFERENTLY SCALED AND YOU WANT UNIFORMITY.
@@ -39,6 +39,9 @@ print(data['Amount'].head()) #RAW DATA IS SUITABLE FOR TREE BASED MODEL SINCE TH
 # print(data['Amount'].head())
 X=data.drop('Class', axis=1) #All the features that the model will use to make predictions
 y=data['Class'] #The target column fraud or not
+
+# X_scaled=scaler.fit_transform(X)
+# X=pd.DataFrame(X_scaled, columns=X.columns)
 
 print(X.head())
 print('\n')
